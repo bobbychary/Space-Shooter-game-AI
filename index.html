@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,3 +58,64 @@
   <script src="game.js"></script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horizon: Space Shooter</title>
+  <meta name="theme-color" content="#0f1420"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="game" aria-label="Space shooter game" role="img"></canvas>
+
+  <div id="hud" aria-hidden="true">
+    <div class="left">
+      <div class="metric"><span class="label">Score</span><span id="score">0</span></div>
+      <div class="metric"><span class="label">Best</span><span id="best">0</span></div>
+    </div>
+    <div class="center">
+      <div id="healthbar" class="bar">
+        <div class="bar-fill" id="health-fill"></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="metric small"><span class="label">Wave</span><span id="wave">1</span></div>
+    </div>
+  </div>
+
+  <div id="overlay" class="show">
+    <div class="panel">
+      <h1>Horizon</h1>
+      <p class="tagline">Neon Space Shooter</p>
+      <div class="instructions">
+        <div>Move: WASD</div>
+        <div>Aim: Mouse</div>
+        <div>Shoot: Hold Left Button and drag</div>
+        <div>Restart: R</div>
+        <div>Pause: P</div>
+      </div>
+      <button id="playBtn" class="primary">Play</button>
+    </div>
+  </div>
+
+  <div id="gameover" class="hidden">
+    <div class="panel">
+      <h2>Game Over</h2>
+      <div class="stats">
+        <div>Score: <span id="finalScore">0</span></div>
+        <div>Best: <span id="finalBest">0</span></div>
+      </div>
+      <button id="restartBtn" class="primary">Restart (R)</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
+>>>>>>> 9829626dff6428467c6b0d856159b145d3d6b91b
