@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 :root{
   --bg-0:#070a12;
   --bg-1:#0b1220;
@@ -239,7 +239,7 @@ button.primary:active{
   .metric{ padding:8px 10px; }
   .metric .label{ display:none; }
 }
-=======
+
 :root{
   --bg-0:#070a12;
   --bg-1:#0b1220;
@@ -480,4 +480,4 @@ button.primary:active{
   .metric{ padding:8px 10px; }
   .metric .label{ display:none; }
 }
->>>>>>> 9829626dff6428467c6b0d856159b145d3d6b91b
+

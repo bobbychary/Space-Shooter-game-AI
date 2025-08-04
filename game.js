@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 (() => {
   'use strict';
 
@@ -46,10 +46,6 @@
   let spawnQueue = 0;
   let spawnTimer = 0;
 
-  // Power-ups
-  const powerUps = [];
-  let killsSinceLastDrop = 0;
-  let nextDropAt = Math.floor(rand(15, 21)); // 15-20 kills
 
   // FX
   let hitFlash = 0; // 0..1
@@ -64,9 +60,7 @@
     enemy2: '#ff3d81',
     bullet: '#6cf2ff',
     ebullet: '#ff5c6c',
-    white: '#e6f0ff',
-    shield: '#31ffa1',
-    health: '#fffd7a'
+    white: '#e6f0ff'
   };
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -159,9 +153,7 @@
       health: 100,
       fireCD: 0,
       fireRPS: 12, // rounds per second
-      alive: true,
-      shieldActive: false,
-      shieldTime: 0
+      alive: true
     };
   }
 
@@ -236,21 +228,6 @@
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle);
 
-    // Active shield aura
-    if (player.shieldActive) {
-      const t = (performance.now() % 1000) / 1000;
-      const puls = 6 + Math.sin(t * Math.PI * 2) * 2;
-      ctx.save();
-      ctx.shadowColor = COLORS.shield;
-      ctx.shadowBlur = 24;
-      ctx.strokeStyle = COLORS.shield;
-      ctx.globalAlpha = 0.8;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, player.radius + 8 + puls * 0.4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
 
     // Glow
     ctx.shadowColor = COLORS.ship2;
@@ -532,77 +509,6 @@
     }
   }
 
-  // Power-up helpers
-  function spawnPowerUp(x, y) {
-    const type = Math.random() < 0.5 ? 'shield' : 'health';
-    powerUps.push({
-      type,
-      x, y,
-      r: 12,
-      vx: rand(-40, 40),
-      vy: rand(-40, 40),
-      rot: rand(0, Math.PI * 2),
-      life: 12 // seconds before expiry
-    });
-  }
-
-  function updatePowerUps(dt) {
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-      const p = powerUps[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vx *= 0.98;
-      p.vy *= 0.98;
-      p.rot += dt * 1.5;
-      p.life -= dt;
-      // keep inside screen
-      p.x = clamp(p.x, 16, W - 16);
-      p.y = clamp(p.y, 16, H - 16);
-      if (p.life <= 0) powerUps.splice(i, 1);
-    }
-  }
-
-  function drawPowerUps() {
-    ctx.save();
-    for (const p of powerUps) {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.shadowBlur = 14;
-      if (p.type === 'shield') {
-        ctx.shadowColor = COLORS.shield;
-        ctx.strokeStyle = COLORS.shield;
-      } else {
-        ctx.shadowColor = COLORS.health;
-        ctx.strokeStyle = COLORS.health;
-      }
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = 0.9;
-      ctx.beginPath();
-      if (p.type === 'shield') {
-        // hexagon token
-        const r = p.r;
-        for (let k = 0; k < 6; k++) {
-          const a = (Math.PI / 3) * k;
-          const x = Math.cos(a) * r;
-          const y = Math.sin(a) * r;
-          if (k === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-      } else {
-        // plus token
-        const s = p.r;
-        ctx.moveTo(-s * 0.5, -s * 1.2); ctx.lineTo(s * 0.5, -s * 1.2);
-        ctx.moveTo(0, -s * 1.2); ctx.lineTo(0, s * 1.2);
-        ctx.moveTo(-s * 1.2, -s * 0.5); ctx.lineTo(-s * 1.2, s * 0.5);
-        ctx.moveTo(s * 1.2, -s * 0.5); ctx.lineTo(s * 1.2, s * 0.5);
-      }
-      ctx.stroke();
-      ctx.restore();
-    }
-    ctx.restore();
-  }
 
   function drawParticles() {
     ctx.save();
@@ -639,13 +545,6 @@
             burst(e.x, e.y, COLORS.enemy, COLORS.enemy2, 24, 260);
             enemies.splice(i, 1);
             addScore(10 + Math.round(wave * 2.5));
-            // track kills and decide power-up drop
-            killsSinceLastDrop++;
-            if (killsSinceLastDrop >= nextDropAt) {
-              spawnPowerUp(e.x, e.y);
-              killsSinceLastDrop = 0;
-              nextDropAt = Math.floor(rand(15, 21));
-            }
             vignettePulse = 1.0;
             shake = Math.min(shake + 8, 16);
             break;
@@ -665,14 +564,7 @@
         if (dist2(e.x, e.y, player.x, player.y) <= r * r) {
           // impact
           const dmg = e.type === 'chaser' ? 16 : 22;
-          if (player.shieldActive) {
-            // absorb and shatter shield
-            player.shieldActive = false;
-            player.shieldTime = 0;
-            burst(player.x, player.y, COLORS.shield, COLORS.ship2, 28, 300);
-          } else {
-            damagePlayer(dmg);
-          }
+          damagePlayer(dmg);
           // push enemy slightly away
           const ang = Math.atan2(e.y - player.y, e.x - player.x);
           const dir = fromAngle(ang, 1);
@@ -696,44 +588,14 @@
       const r = b.r + player.radius;
       if (dist2(b.x, b.y, player.x, player.y) <= r * r) {
         enemyBullets.splice(i, 1);
-        if (player.shieldActive) {
-          // absorb projectile, reduce shield time slightly
-          player.shieldTime = Math.max(0, player.shieldTime - 0.5);
-          if (player.shieldTime <= 0) {
-            player.shieldActive = false;
-          }
-          burst(player.x, player.y, COLORS.shield, COLORS.ship2, 16, 240);
-        } else {
-          damagePlayer(b.dmg);
-        }
+        damagePlayer(b.dmg);
         spawnParticle(b.x, b.y, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, rand(2, 4), 0.25, COLORS.ebullet, 0.9);
-      }
-    }
-
-    // power-up -> player
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-      const p = powerUps[i];
-      const r = p.r + player.radius;
-      if (dist2(p.x, p.y, player.x, player.y) <= r * r) {
-        if (p.type === 'shield') {
-          player.shieldActive = true;
-          player.shieldTime = 5.0; // 5 seconds
-          burst(player.x, player.y, COLORS.shield, COLORS.ship2, 24, 280);
-        } else if (p.type === 'health') {
-          const before = player.health;
-          player.health = Math.min(player.maxHealth, player.health + 20);
-          if (player.health > before) {
-            burst(player.x, player.y, COLORS.health, COLORS.ship2, 16, 220);
-          }
-        }
-        powerUps.splice(i, 1);
       }
     }
   }
 
   function damagePlayer(dmg) {
     if (!player.alive) return;
-    if (player.shieldActive) return; // safety
     player.health -= dmg;
     shake = Math.min(shake + 10, 20);
     hitFlash = 0.35;
@@ -986,15 +848,6 @@
       updateBullets(dt);
       updateEnemyBullets(dt);
       updateEnemies(dt);
-      updatePowerUps(dt);
-      // shield countdown
-      if (player.shieldActive) {
-        player.shieldTime -= dt;
-        if (player.shieldTime <= 0) {
-          player.shieldActive = false;
-          player.shieldTime = 0;
-        }
-      }
       handleCollisions();
       updateParticles(dt);
       updateWave(dt);
@@ -1013,7 +866,6 @@
     if (state !== 'menu') drawEnemies();
     if (state !== 'menu') drawEnemyBullets();
     if (state !== 'menu') drawBullets();
-    if (state !== 'menu') drawPowerUps();
     if (player) drawPlayer();
     popCamera();
 
@@ -1035,7 +887,7 @@
   requestAnimationFrame(frame);
 
 })();
-=======
+
 (() => {
   'use strict';
 
@@ -1921,4 +1773,3 @@
   requestAnimationFrame(frame);
 
 })();
->>>>>>> 9829626dff6428467c6b0d856159b145d3d6b91b
